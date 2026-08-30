@@ -627,6 +627,10 @@ def aplicar_css_filtros():
                 max-width: 1500px !important;
                 width: 100% !important;
             }
+            div[data-testid="stButton"] {
+                visibility: visible !important;
+                opacity: 1 !important;
+            }
             </style>
             """,
             unsafe_allow_html=True,
@@ -634,17 +638,37 @@ def aplicar_css_filtros():
 
 
 def renderizar_toggle_filtros_principal():
-    """Muestra el botón para volver a abrir los filtros cuando están ocultos."""
+    """Muestra un botón grande y visible para volver a abrir los filtros."""
     if not st.session_state.filtros_visibles:
-        col1, _ = st.columns([1, 8])
-        with col1:
-            if st.button(
-                "☰ Filtros",
-                key="btn_mostrar_filtros",
-                help="Mostrar panel de filtros",
-            ):
-                st.session_state.filtros_visibles = True
-                st.rerun()
+        st.markdown(
+            """
+            <style>
+            .boton-mostrar-filtros {
+                margin: 0 0 14px 0;
+            }
+            .boton-mostrar-filtros + div [data-testid="stButton"] > button {
+                background: #143458 !important;
+                color: #FFFFFF !important;
+                border: 3px solid #FFB700 !important;
+                border-radius: 10px !important;
+                min-height: 48px !important;
+                font-size: 17px !important;
+                font-weight: 800 !important;
+                box-shadow: 0 4px 12px rgba(20,52,88,.18) !important;
+            }
+            </style>
+            <div class="boton-mostrar-filtros"></div>
+            """,
+            unsafe_allow_html=True,
+        )
+        if st.button(
+            "☰  MOSTRAR FILTROS",
+            key="btn_mostrar_filtros",
+            width="stretch",
+            help="Volver a mostrar el panel lateral de filtros",
+        ):
+            st.session_state.filtros_visibles = True
+            st.rerun()
 
 
 def verificar_password():
