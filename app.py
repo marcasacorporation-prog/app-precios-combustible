@@ -605,46 +605,6 @@ if "df_data" not in st.session_state:
     st.session_state.df_data = None
 if "fuente_datos" not in st.session_state:
     st.session_state.fuente_datos = ""
-if "filtros_visibles" not in st.session_state:
-    st.session_state.filtros_visibles = True
-
-
-def aplicar_css_filtros():
-    """Oculta o muestra el panel lateral sin perder los filtros seleccionados."""
-    if not st.session_state.filtros_visibles:
-        st.markdown(
-            """
-            <style>
-            section[data-testid="stSidebar"] {
-                display: none !important;
-            }
-
-            [data-testid="stAppViewContainer"] > .main {
-                margin-left: 0 !important;
-            }
-
-            .block-container {
-                max-width: 1500px !important;
-                width: 100% !important;
-            }
-            </style>
-            """,
-            unsafe_allow_html=True,
-        )
-
-
-def renderizar_toggle_filtros_principal():
-    """Muestra el botón para volver a abrir los filtros cuando están ocultos."""
-    if not st.session_state.filtros_visibles:
-        col1, _ = st.columns([1, 8])
-        with col1:
-            if st.button(
-                "☰ Filtros",
-                key="btn_mostrar_filtros",
-                help="Mostrar panel de filtros",
-            ):
-                st.session_state.filtros_visibles = True
-                st.rerun()
 
 
 def verificar_password():
@@ -716,45 +676,20 @@ def leer_excel(origen):
         return None
 
 
-@st.cache_data(show_spinner=False)
 def preparar_dataframe(df_original):
-    """Limpia y normaliza los datos una sola vez por archivo/origen."""
     if df_original is None:
         return None
 
-    faltantes = [c for c in COLUMNAS_REQUERIDAS if c not in df_original.columns]
+    df = df_original.copy()
+
+    faltantes = [c for c in COLUMNAS_REQUERIDAS if c not in df.columns]
+
     if faltantes:
-        return None
-
-    df = df_original.loc[:, COLUMNAS_REQUERIDAS].copy()
-
-    columnas_texto = [
-        "DEPARTAMENTO",
-        "PROVINCIA",
-        "DISTRITO",
-        "PRODUCTO",
-        "RAZON",
-        "DIRECCION",
-    ]
-
-    for columna in columnas_texto:
-        df[columna] = (
-            df[columna]
-            .fillna("")
-            .astype("string")
-            .str.strip()
+        st.error(
+            "❌ El archivo no contiene las columnas necesarias: "
+            + ", ".join(faltantes)
         )
-
-    precio = (
-        df["PRECIO_VENTA"]
-        .astype("string")
-        .str.replace("S/", "", regex=False)
-        .str.replace(",", "", regex=False)
-        .str.strip()
-    )
-
-    df["PRECIO_VENTA"] = pd.to_numeric(precio, errors="coerce")
-    df = df.dropna(subset=["PRECIO_VENTA"])
+        return None
 
     for columna in [
         "DEPARTAMENTO",
@@ -762,8 +697,29 @@ def preparar_dataframe(df_original):
         "DISTRITO",
         "PRODUCTO",
         "RAZON",
+        "DIRECCION",
     ]:
-        df[columna] = df[columna].astype("category")
+        df[columna] = (
+            df[columna]
+            .fillna("")
+            .astype(str)
+            .str.strip()
+        )
+
+    df["PRECIO_VENTA"] = (
+        df["PRECIO_VENTA"]
+        .astype(str)
+        .str.replace("S/", "", regex=False)
+        .str.replace(",", "", regex=False)
+        .str.strip()
+    )
+
+    df["PRECIO_VENTA"] = pd.to_numeric(
+        df["PRECIO_VENTA"],
+        errors="coerce",
+    )
+
+    df = df.dropna(subset=["PRECIO_VENTA"]).copy()
 
     return df
 
@@ -960,22 +916,40 @@ def renderizar_carga_datos():
 
 
 def aplicar_filtros(df_base, departamentos_seleccionados, provincias_seleccionadas, distritos_seleccionados, producto_seleccionado):
-    """Aplica los filtros sin copiar innecesariamente toda la base."""
-    mask = pd.Series(True, index=df_base.index)
+    """Aplica los filtros jerárquicos y devuelve el DataFrame resultante."""
+    # ============================================================
+    # APLICAR FILTROS
+    # ============================================================
+    df = df_base.copy()
 
     if departamentos_seleccionados:
-        mask &= df_base["DEPARTAMENTO"].isin(departamentos_seleccionados)
+        df = df[
+            df["DEPARTAMENTO"].isin(
+                departamentos_seleccionados
+            )
+        ]
 
     if provincias_seleccionadas:
-        mask &= df_base["PROVINCIA"].isin(provincias_seleccionadas)
+        df = df[
+            df["PROVINCIA"].isin(
+                provincias_seleccionadas
+            )
+        ]
 
     if distritos_seleccionados:
-        mask &= df_base["DISTRITO"].isin(distritos_seleccionados)
+        df = df[
+            df["DISTRITO"].isin(
+                distritos_seleccionados
+            )
+        ]
 
     if producto_seleccionado != "Todos los combustibles":
-        mask &= df_base["PRODUCTO"].eq(producto_seleccionado)
+        df = df[
+            df["PRODUCTO"] == producto_seleccionado
+        ]
 
-    return df_base.loc[mask]
+    # ============================================================
+    return df
 
 
 def renderizar_resumen_filtros(departamentos_seleccionados, provincias_seleccionadas, distritos_seleccionados, producto_seleccionado):
@@ -1101,8 +1075,7 @@ def renderizar_grafico_comparativo(df):
     grafico = (
         df.groupby(
             ["DISTRITO", "RAZON"],
-            as_index=False,
-            observed=True,
+            as_index=False
         )["PRECIO_VENTA"]
         .mean()
         .sort_values("PRECIO_VENTA")
@@ -1185,7 +1158,7 @@ def renderizar_grafico_comparativo(df):
             fig_bar,
             width="stretch",
             config={
-                "displayModeBar": False
+                "displayModeBar": True
             },
         )
 
@@ -1209,7 +1182,7 @@ def renderizar_grafico_distribucion(df):
             "PRECIO_VENTA": "Precio (S/)",
             "DEPARTAMENTO": "Departamento",
         },
-        points=False,
+        points="outliers",
     )
 
     fig_box.update_layout(
@@ -1258,7 +1231,7 @@ def renderizar_grafico_distribucion(df):
         fig_box,
         width="stretch",
         config={
-            "displayModeBar": False
+            "displayModeBar": True
         },
     )
 
@@ -1312,16 +1285,6 @@ def renderizar_tabla(df):
 def renderizar_sidebar(df_base, modo_preview=False):
     """Renderiza el panel lateral y devuelve los cuatro filtros seleccionados."""
     with st.sidebar:
-
-        if not modo_preview:
-            if st.button(
-                "«  Ocultar filtros",
-                key="btn_ocultar_filtros",
-                width="stretch",
-                help="Ocultar panel de filtros para ampliar la pantalla",
-            ):
-                st.session_state.filtros_visibles = False
-                st.rerun()
 
         st.markdown(
             """
@@ -1482,7 +1445,6 @@ def renderizar_sidebar(df_base, modo_preview=False):
             ):
                 st.session_state.df_data = None
                 st.session_state.fuente_datos = ""
-                st.session_state.filtros_visibles = True
                 limpiar_filtros()
                 st.session_state.pop("archivo_local", None)
                 st.session_state.pop("url_osinergmin", None)
@@ -1595,30 +1557,24 @@ if not verificar_password():
     st.stop()
 
 # ============================================================
-# 05. TOGGLE DEL PANEL DE FILTROS
-# ============================================================
-aplicar_css_filtros()
-renderizar_toggle_filtros_principal()
-
-# ============================================================
-# 06. CABECERA
+# 05. CABECERA
 # ============================================================
 renderizar_cabecera()
 
 # ============================================================
-# 07. CARGA DE DATOS
+# 06. CARGA DE DATOS
 # ============================================================
 if st.session_state.df_data is None:
     renderizar_carga_datos()
     st.stop()
 
 # ============================================================
-# 08. DATA PROCESADA
+# 07. DATA PROCESADA
 # ============================================================
-df_base = st.session_state.df_data
+df_base = st.session_state.df_data.copy()
 
 # ============================================================
-# 09. PANEL LATERAL + FILTROS
+# 08. PANEL LATERAL + FILTROS
 # ============================================================
 (
     departamentos_seleccionados,
@@ -1628,7 +1584,7 @@ df_base = st.session_state.df_data
 ) = renderizar_sidebar(df_base)
 
 # ============================================================
-# 10. ESTADO Y RESUMEN
+# 09. ESTADO Y RESUMEN
 # ============================================================
 st.markdown(
     f'''<div class="estado-datos">✅ Información procesada correctamente · {len(df_base):,} registros disponibles para análisis</div>''',
@@ -1661,7 +1617,7 @@ renderizar_resumen_filtros(
 )
 
 # ============================================================
-# 11. RESULTADOS + INDICADORES
+# 10. RESULTADOS + INDICADORES
 # ============================================================
 st.markdown(
     '<div class="seccion-titulo">📊 Análisis comparativo de competencia</div>',
@@ -1677,18 +1633,18 @@ if df.empty:
 renderizar_kpis(df)
 
 # ============================================================
-# 12. GRÁFICOS INTERACTIVOS
+# 11. GRÁFICOS INTERACTIVOS
 # ============================================================
 renderizar_grafico_comparativo(df)
 renderizar_grafico_distribucion(df)
 
 # ============================================================
-# 13. TABLA DETALLADA
+# 12. TABLA DETALLADA
 # ============================================================
 renderizar_tabla(df)
 
 # ============================================================
-# 14. PIE DE PÁGINA
+# 13. PIE DE PÁGINA
 # ============================================================
 st.divider()
 st.caption("MARCASA · Sistema de Análisis de Competencia y Precios")
