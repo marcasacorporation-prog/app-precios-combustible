@@ -721,106 +721,358 @@ def aplicar_css_filtros():
 
 
 def renderizar_toggle_filtros_principal():
-    """Muestra un botón visible para volver a abrir el panel."""
+    """Botón para volver a mostrar el panel de filtros."""
     if not st.session_state.get("filtros_visibles", True):
+
         st.markdown(
             """
-            <div class="boton-filtros-abrir">
-                ☰ MOSTRAR FILTROS
-            </div>
+            <style>
+
+            /* =====================================================
+               BOTÓN MOSTRAR FILTROS
+               ===================================================== */
+
+            [data-testid="stButton"] {
+                width: 100% !important;
+            }
+
+            [data-testid="stButton"] button {
+                width: 100% !important;
+                min-height: 58px !important;
+
+                background: #FE6902 !important;
+                background-color: #FE6902 !important;
+
+                color: #FFFFFF !important;
+                -webkit-text-fill-color: #FFFFFF !important;
+
+                border: 0 !important;
+                border-radius: 12px !important;
+
+                font-size: 17px !important;
+                font-weight: 900 !important;
+
+                padding: 12px 24px !important;
+
+                opacity: 1 !important;
+
+                box-shadow:
+                    0 6px 18px rgba(254, 105, 2, 0.30) !important;
+
+                cursor: pointer !important;
+            }
+
+            /* Texto interno del botón */
+            [data-testid="stButton"] button p {
+                color: #FFFFFF !important;
+                -webkit-text-fill-color: #FFFFFF !important;
+                font-size: 17px !important;
+                font-weight: 900 !important;
+            }
+
+            [data-testid="stButton"] button span {
+                color: #FFFFFF !important;
+                -webkit-text-fill-color: #FFFFFF !important;
+            }
+
+            [data-testid="stButton"] button div {
+                color: #FFFFFF !important;
+                -webkit-text-fill-color: #FFFFFF !important;
+            }
+
+            /* Hover */
+            [data-testid="stButton"] button:hover {
+                background: #FFB700 !important;
+                background-color: #FFB700 !important;
+                color: #143458 !important;
+                -webkit-text-fill-color: #143458 !important;
+
+                transform: translateY(-2px);
+
+                box-shadow:
+                    0 9px 22px rgba(255, 183, 0, 0.35) !important;
+            }
+
+            [data-testid="stButton"] button:hover p,
+            [data-testid="stButton"] button:hover span,
+            [data-testid="stButton"] button:hover div {
+                color: #143458 !important;
+                -webkit-text-fill-color: #143458 !important;
+            }
+
+            /* Focus */
+            [data-testid="stButton"] button:focus {
+                background: #FE6902 !important;
+                background-color: #FE6902 !important;
+                color: #FFFFFF !important;
+                -webkit-text-fill-color: #FFFFFF !important;
+
+                outline: none !important;
+
+                box-shadow:
+                    0 0 0 3px rgba(255,183,0,.35),
+                    0 6px 18px rgba(254,105,2,.30) !important;
+            }
+
+            [data-testid="stButton"] button:focus p,
+            [data-testid="stButton"] button:focus span,
+            [data-testid="stButton"] button:focus div {
+                color: #FFFFFF !important;
+                -webkit-text-fill-color: #FFFFFF !important;
+            }
+
+            /* Estado activo */
+            [data-testid="stButton"] button:active {
+                background: #FE6902 !important;
+                background-color: #FE6902 !important;
+                color: #FFFFFF !important;
+                -webkit-text-fill-color: #FFFFFF !important;
+            }
+
+            /* Celulares */
+            @media (max-width: 640px) {
+
+                [data-testid="stButton"] button {
+                    min-height: 50px !important;
+                    font-size: 15px !important;
+                    padding: 10px 16px !important;
+                }
+
+                [data-testid="stButton"] button p {
+                    font-size: 15px !important;
+                }
+            }
+
+            </style>
             """,
             unsafe_allow_html=True,
         )
 
+        # Botón ancho y visible
         if st.button(
-            "☰ MOSTRAR FILTROS",
+            "☰  MOSTRAR FILTROS",
             key="btn_mostrar_filtros_principal",
+            width="stretch",
             help="Volver a mostrar el panel de filtros",
         ):
             st.session_state.filtros_visibles = True
             st.rerun()
-
-def renderizar_toggle_filtros_principal():
-    """Muestra un botón grande y visible para volver a abrir los filtros."""
-    if not st.session_state.filtros_visibles:
-        st.markdown(
-            """
-            <style>
-            .boton-mostrar-filtros {
-                margin: 0 0 14px 0;
-            }
-            .boton-mostrar-filtros + div [data-testid="stButton"] > button {
-                background: #143458 !important;
-                color: #FFFFFF !important;
-                border: 3px solid #FFB700 !important;
-                border-radius: 10px !important;
-                min-height: 48px !important;
-                font-size: 17px !important;
-                font-weight: 800 !important;
-                box-shadow: 0 4px 12px rgba(20,52,88,.18) !important;
-            }
-            </style>
-            <div class="boton-mostrar-filtros"></div>
-            """,
-            unsafe_allow_html=True,
-        )
-        if st.button(
-            "☰  MOSTRAR FILTROS",
-            key="btn_mostrar_filtros",
-            width="stretch",
-            help="Volver a mostrar el panel lateral de filtros",
-        ):
-            st.session_state.filtros_visibles = True
-            st.rerun()
-
-
 def verificar_password():
-    """Valida el acceso al sistema."""
+    """Pantalla de acceso al sistema MARCASA."""
     if st.session_state.autenticado:
         return True
 
+    # ============================================================
+    # ESTILOS DE LA PANTALLA DE ACCESO
+    # ============================================================
     st.markdown(
         f"""
-        <div style="
-            max-width:560px;
-            margin:60px auto 20px auto;
-            padding:38px;
-            background:{BLANCO};
-            border-radius:15px;
-            border-top:7px solid {DORADO};
-            box-shadow:0 5px 25px rgba(0,0,0,.10);
-            text-align:center;">
-            <div style="font-size:52px;">⛽</div>
-            <div style="color:{AZUL};font-size:30px;font-weight:800;">MARCASA</div>
-            <div style="color:{GRIS};font-size:15px;margin-top:8px;">
-                Sistema de Análisis de Competencia y Precios
-            </div>
-            <div style="color:{AZUL};font-size:13px;margin-top:14px;font-weight:700;">
-                Acceso autorizado
-            </div>
-        </div>
+        <style>
+        /* Fondo general de la pantalla de acceso */
+        [data-testid="stAppViewContainer"] {{
+            background:
+                radial-gradient(circle at 15% 15%, rgba(255,183,0,.14), transparent 28%),
+                radial-gradient(circle at 85% 85%, rgba(20,52,88,.12), transparent 30%),
+                #F5F7FA;
+        }}
+
+        .main .block-container {{
+            max-width: 1050px !important;
+            padding-top: 35px !important;
+            padding-bottom: 35px !important;
+        }}
+
+        /* Tarjeta de acceso */
+        .login-titulo {{
+            color: {AZUL} !important;
+            font-size: 34px !important;
+            font-weight: 900 !important;
+            text-align: center !important;
+            margin-top: 5px !important;
+            margin-bottom: 4px !important;
+            letter-spacing: .3px;
+        }}
+
+        .login-subtitulo {{
+            color: {GRIS} !important;
+            font-size: 15px !important;
+            text-align: center !important;
+            line-height: 1.5 !important;
+            margin-bottom: 8px !important;
+        }}
+
+        .login-linea {{
+            width: 85px;
+            height: 5px;
+            margin: 12px auto 18px auto;
+            border-radius: 10px;
+            background: linear-gradient(90deg, {DORADO}, {NARANJA});
+        }}
+
+        .login-bienvenida {{
+            color: {AZUL} !important;
+            font-size: 20px !important;
+            font-weight: 800 !important;
+            text-align: center !important;
+            margin-top: 8px !important;
+        }}
+
+        .login-ayuda {{
+            color: {GRIS} !important;
+            font-size: 13px !important;
+            text-align: center !important;
+            margin-top: 4px !important;
+            margin-bottom: 10px !important;
+        }}
+
+        /* Botón de ingreso */
+        [data-testid="stButton"] button {{
+            background: linear-gradient(135deg, {NARANJA}, {DORADO}) !important;
+            color: {AZUL_OSCURO} !important;
+            border: none !important;
+            border-radius: 11px !important;
+            min-height: 48px !important;
+            font-size: 15px !important;
+            font-weight: 900 !important;
+            box-shadow: 0 7px 18px rgba(254,105,2,.20) !important;
+            transition: all .2s ease !important;
+        }}
+
+        [data-testid="stButton"] button:hover {{
+            transform: translateY(-1px);
+            box-shadow: 0 10px 24px rgba(254,105,2,.28) !important;
+        }}
+
+        /* Campo de contraseña */
+        [data-testid="stTextInput"] input {{
+            border-radius: 10px !important;
+            border: 1px solid #CBD5E1 !important;
+            background: white !important;
+            color: {AZUL} !important;
+            min-height: 46px !important;
+        }}
+
+        [data-testid="stTextInput"] label {{
+            color: {AZUL} !important;
+            font-weight: 800 !important;
+        }}
+
+        .login-pie {{
+            color: #94A3B8 !important;
+            font-size: 11px !important;
+            text-align: center !important;
+            margin-top: 18px !important;
+        }}
+
+        @media (max-width: 640px) {{
+            .main .block-container {{
+                padding: 18px 12px 25px 12px !important;
+            }}
+
+            .login-titulo {{
+                font-size: 27px !important;
+            }}
+
+            .login-subtitulo {{
+                font-size: 13px !important;
+            }}
+        }}
+        </style>
         """,
         unsafe_allow_html=True,
     )
 
-    password = st.text_input(
-        "Contraseña de acceso",
-        type="password",
-        key="login_password",
-        placeholder="Ingresa tu contraseña",
+    # ============================================================
+    # TARJETA CENTRAL
+    # ============================================================
+    espacio_izq, centro, espacio_der = st.columns(
+        [1, 2, 1],
+        vertical_alignment="top",
     )
 
-    if st.button("🔐 Ingresar al sistema", width="stretch"):
-        if password == "Marcasa2026":
-            st.session_state.autenticado = True
-            st.session_state.pop("login_password", None)
-            st.rerun()
-        else:
-            st.error("❌ Contraseña incorrecta.")
+    with centro:
+
+        # Separación superior
+        st.markdown(
+            "<div style='height:20px;'></div>",
+            unsafe_allow_html=True,
+        )
+
+        # Logo centrado
+        col_logo_izq, col_logo, col_logo_der = st.columns(
+            [1, 2, 1]
+        )
+
+        with col_logo:
+            if os.path.exists("logo.png"):
+                st.image(
+                    "logo.png",
+                    width=220,
+                )
+            else:
+                st.markdown(
+                    "<div style='text-align:center;font-size:70px;'>⛽</div>",
+                    unsafe_allow_html=True,
+                )
+
+        # Título
+        st.markdown(
+            '<div class="login-titulo">MARCASA</div>',
+            unsafe_allow_html=True,
+        )
+
+        st.markdown(
+            '<div class="login-linea"></div>',
+            unsafe_allow_html=True,
+        )
+
+        st.markdown(
+            '<div class="login-subtitulo">'
+            'Sistema Inteligente de Análisis de Competencia y Precios'
+            '</div>',
+            unsafe_allow_html=True,
+        )
+
+        st.markdown(
+            '<div class="login-bienvenida">🔐 Acceso autorizado</div>',
+            unsafe_allow_html=True,
+        )
+
+        st.markdown(
+            '<div class="login-ayuda">'
+            'Ingresa tu contraseña para acceder al panel de análisis'
+            '</div>',
+            unsafe_allow_html=True,
+        )
+
+        # Contraseña
+        password = st.text_input(
+            "Contraseña de acceso",
+            type="password",
+            key="login_password",
+            placeholder="Ingresa tu contraseña",
+        )
+
+        # Botón
+        if st.button(
+            "🚀 INGRESAR AL SISTEMA",
+            width="stretch",
+        ):
+            if password == "Marcasa2026":
+                st.session_state.autenticado = True
+                st.session_state.pop("login_password", None)
+                st.rerun()
+            else:
+                st.error("❌ Contraseña incorrecta.")
+
+        st.markdown(
+            '<div class="login-pie">'
+            'MARCASA · Monitoreo estratégico de precios de combustibles'
+            '</div>',
+            unsafe_allow_html=True,
+        )
 
     return False
-
-
 # FUNCIONES DE DATOS
 # ============================================================
 COLUMNAS_REQUERIDAS = [
