@@ -610,32 +610,135 @@ if "filtros_visibles" not in st.session_state:
 
 
 def aplicar_css_filtros():
-    """Oculta o muestra el panel lateral sin perder los filtros seleccionados."""
-    if not st.session_state.filtros_visibles:
+    """Controla la visibilidad del panel de filtros."""
+    if "filtros_visibles" not in st.session_state:
+        st.session_state.filtros_visibles = True
+
+    if st.session_state.filtros_visibles:
         st.markdown(
             """
             <style>
+            /* PANEL VISIBLE */
             section[data-testid="stSidebar"] {
-                display: none !important;
+                display: block !important;
+                visibility: visible !important;
+                width: 320px !important;
+                min-width: 320px !important;
+                max-width: 320px !important;
+                transform: translateX(0) !important;
+                z-index: 999990 !important;
             }
 
+            section[data-testid="stSidebar"] > div {
+                width: 320px !important;
+            }
+
+            /* Mantener el contenido principal correctamente alineado */
             [data-testid="stAppViewContainer"] > .main {
                 margin-left: 0 !important;
             }
 
-            .block-container {
-                max-width: 1500px !important;
-                width: 100% !important;
+            /* Ocultar el botón flotante cuando los filtros están visibles */
+            .boton-filtros-abrir {
+                display: none !important;
             }
-            div[data-testid="stButton"] {
-                visibility: visible !important;
-                opacity: 1 !important;
+
+            @media (max-width: 640px) {
+                section[data-testid="stSidebar"] {
+                    width: 88vw !important;
+                    min-width: 88vw !important;
+                    max-width: 340px !important;
+                }
+
+                section[data-testid="stSidebar"] > div {
+                    width: 100% !important;
+                }
             }
             </style>
             """,
             unsafe_allow_html=True,
         )
 
+    else:
+        st.markdown(
+            """
+            <style>
+            /* PANEL OCULTO */
+            section[data-testid="stSidebar"] {
+                display: block !important;
+                visibility: hidden !important;
+                width: 0 !important;
+                min-width: 0 !important;
+                max-width: 0 !important;
+                transform: translateX(-110%) !important;
+                overflow: hidden !important;
+            }
+
+            section[data-testid="stSidebar"] > div {
+                width: 0 !important;
+                min-width: 0 !important;
+            }
+
+            [data-testid="stAppViewContainer"] > .main {
+                margin-left: 0 !important;
+            }
+
+            /* BOTÓN GRANDE PARA VOLVER A MOSTRAR LOS FILTROS */
+            .boton-filtros-abrir {
+                display: inline-block !important;
+                position: fixed;
+                top: 95px;
+                left: 18px;
+                z-index: 999999;
+                background: #FE6902 !important;
+                color: #FFFFFF !important;
+                border: 0 !important;
+                border-radius: 10px !important;
+                padding: 12px 18px !important;
+                font-size: 15px !important;
+                font-weight: 800 !important;
+                box-shadow: 0 5px 18px rgba(0,0,0,.25) !important;
+                cursor: pointer !important;
+            }
+
+            .boton-filtros-abrir:hover {
+                background: #FFB700 !important;
+                color: #143458 !important;
+            }
+
+            @media (max-width: 640px) {
+                .boton-filtros-abrir {
+                    top: 72px;
+                    left: 8px;
+                    padding: 10px 14px !important;
+                    font-size: 13px !important;
+                }
+            }
+            </style>
+            """,
+            unsafe_allow_html=True,
+        )
+
+
+def renderizar_toggle_filtros_principal():
+    """Muestra un botón visible para volver a abrir el panel."""
+    if not st.session_state.get("filtros_visibles", True):
+        st.markdown(
+            """
+            <div class="boton-filtros-abrir">
+                ☰ MOSTRAR FILTROS
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+
+        if st.button(
+            "☰ MOSTRAR FILTROS",
+            key="btn_mostrar_filtros_principal",
+            help="Volver a mostrar el panel de filtros",
+        ):
+            st.session_state.filtros_visibles = True
+            st.rerun()
 
 def renderizar_toggle_filtros_principal():
     """Muestra un botón grande y visible para volver a abrir los filtros."""
@@ -1621,6 +1724,8 @@ if not verificar_password():
 # ============================================================
 # 05. TOGGLE DEL PANEL DE FILTROS
 # ============================================================
+if not verificar_password():
+    st.stop()
 aplicar_css_filtros()
 renderizar_toggle_filtros_principal()
 
