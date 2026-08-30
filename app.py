@@ -2,6 +2,58 @@ import streamlit as st
 import pandas as pd
 import plotly.express as px
 
+def verificar_password():
+    def password_entered():
+        if st.session_state["password"] == "Marcasacorporation2026":  # Cambia '123456' por tu contraseña
+            st.session_state["password_correct"] = True
+            del st.session_state["password"]
+        else:
+            st.session_state["password_correct"] = False
+
+    if "password_correct" not in st.session_state:
+        st.text_input("Ingresa la contraseña para acceder al aplicativo:", type="password", on_change=password_entered, key="password")
+        return False
+    elif not st.session_state["password_correct"]:
+        st.text_input("Ingresa la contraseña para acceder al aplicativo:", type="password", on_change=password_entered, key="password")
+        st.error("😕 Contraseña incorrecta")
+        return False
+    else:
+        return True
+
+if not verificar_password():
+    st.stop()
+
+# Configuración inicial de la página
+st.set_page_config(page_title="Análisis de Competencia - Combustible")
+st.title("⛽ Análisis de Competencia - Precios de Combustibles")
+
+# Selector de origen de datos
+st.subheader("Selecciona cómo ingresar los datos:")
+opcion_fuente = st.radio(
+    "Elige una opción:",
+    ("Subir archivo Excel local", "Ingresar enlace URL de Osinergmin")
+)
+
+df = None
+
+if opcion_fuente == "Subir archivo Excel local":
+    archivo_subido = st.file_uploader("Sube el archivo 'Ultimos-Precios-Registrados-EVPC.xlsx'", type=["xlsx"])
+    if archivo_subido is not None:
+        @st.cache_data
+        def cargar_excel(file):
+            return pd.read_excel(file)
+        df = cargar_excel(archivo_subido)
+else:
+    url_input = st.text_input("Ingresa la URL directa del archivo Excel de Osinergmin:")
+    if url_input:
+        @st.cache_data
+        def cargar_url(url):
+            return pd.read_excel(url)
+        df = cargar_url(url_input)
+
+if df is not None:
+    st.success("¡Datos cargados exitosamente!")
+    # Aquí continúan tus filtros y tablas de análisis...
 # Configuración inicial de la página
 st.set_page_config(page_title="Análisis de Competencia - Combustibles", layout="wide")
 st.title("⛽ Análisis de Competencia - Precios de Combustibles")
